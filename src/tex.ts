@@ -1,14 +1,11 @@
 import * as fs from 'fs-extra'
 import { sha1 } from 'object-hash'
 import { exists, exec } from './helper'
-import { texTextToReplace, tempFolder } from './constants'
+import { texTextToReplace, tempFolder, templateTextFile } from './constants'
 
-export async function getTemplateTexFile() {
-  const templateTextFile = (await fs.readFile('./data/tex_template.tex')).toString()
-
-  const templateTexFile = templateTextFile.replace(texTextToReplace, '\\begin{align*}\n' + texTextToReplace + '\n\\end{align*}')
-
-  return { templateTextFile, templateTexFile }
+export interface TexFiles {
+  templateTextFile: string
+  templateTexFile: string
 }
 
 function texHash(expression: string, template: string) {

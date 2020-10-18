@@ -1,38 +1,21 @@
-import express from 'express'
-import { getTemplateTexFile, generateTexFile, texToDvi, dviToSvg } from './tex'
-import atob from 'atob'
-import { readFile } from 'fs-extra'
+import { dviToSvg, generateTexFile, texToDvi, TexFiles } from './tex'
 import { createTempFolder } from './helper'
-import cors from 'cors'
-;(async () => {
-  const port = process.env.PORT || 3000
-  const app = express()
-  app.use(cors())
-  const { templateTexFile, templateTextFile } = await getTemplateTexFile()
+import { readFile } from 'fs-extra'
+import { templateTexFile, templateTextFile } from './constants'
 
-  await createTempFolder()
+export async function getTex(expression: string) {
+  const texFile = await generateTexFile(expression, templateTexFile)
+  const dviFile = await texToDvi(texFile)
+  const svgFile = await dviToSvg(dviFile)
+  const svg = (await readFile(svgFile)).toString()
+  return svg
+}
+export async function getText(expression: string) {
+  const texFile = await generateTexFile(expression, templateTextFile)
+  const dviFile = await texToDvi(texFile)
+  const svgFile = await dviToSvg(dviFile)
+  const svg = (await readFile(svgFile)).toString()
+  return svg
+}
 
-  app.get('/tex/:code', async (req, res) => {
-    const expression = atob(req.params.code.toString())
-
-    const texFile = await generateTexFile(expression, templateTexFile)
-    const dviFile = await texToDvi(texFile)
-    const svgFile = await dviToSvg(dviFile)
-    const svg = (await readFile(svgFile)).toString()
-
-    res.send(svg)
-  })
-
-  app.get('/text/:code', async (req, res) => {
-    const expression = atob(req.params.code.toString())
-
-    const texFile = await generateTexFile(expression, templateTextFile)
-    const dviFile = await texToDvi(texFile)
-    const svgFile = await dviToSvg(dviFile)
-    const svg = (await readFile(svgFile)).toString()
-
-    res.send(svg)
-  })
-
-  app.listen(port, () => console.log(`Listenning to port ${port}...`))
-})()
+export { TexFiles, createTempFolder, templateTexFile, templateTextFile }
